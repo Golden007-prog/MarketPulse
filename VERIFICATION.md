@@ -1,0 +1,15 @@
+# Verification — 22 September 2026
+
+The application was started locally on `http://127.0.0.1:4317` and inspected in the connected browser. It retrieved real Coinbase trade and candle responses for BTC-USD, ETH-USD and SOL-USD. At 10:38 UTC all three feeds had recent successful updates, valid prices, candle history and no upstream errors.
+
+Verified browser interactions: switching BTC to ETH, changing the chart to 15 minutes, and pausing the view. Pause explicitly leaves server collection active. The app was returned to an active Bitcoin overview. The dashboard labels its current path **Public API preview** and leaves cloud/forecast values unavailable.
+
+`npm test`: **32 passed, 0 failed** after the Pages and operational-signal enhancements. Tests cover fixed-decimal arithmetic, malformed data, product-scoped deduplication, time-window boundaries, maker/taker semantics, JSON Schema wire framing, Flink timestamp normalization, nullable forecasts, rejected invalid signals, all four fault scenarios, preservation of existing movement, deterministic evidence, tamper rejection, snapshot isolation, expiration, stale sources, insufficient histories, the browser provider and optional operational fields.
+
+The exact static Pages build was served under `/MarketPulse/` and inspected in the connected browser. Actual cross-origin Coinbase requests succeeded with no console errors. At 11:13 UTC, freezing 200 sampled BTC trades and injecting two duplicate copies produced 600 unguarded records versus 200 accepted records, ALERT versus CLEAR. Static artifacts contain only allowlisted browser assets and the shared analytics/replay modules.
+
+At 10:52:19 UTC a real 500-trade BTC-USD sample was frozen through the local API. Moderate duplicate injection produced ALERT/CLEAR; record loss and late arrival produced CLEAR/HOLD; synthetic price shock produced ALERT/ALERT. All four downloaded artifacts passed digest checking and exact offline replay. See `evidence/results.json` and `DEMO.md`. Browser checks also verified freezing, switching scenarios, result rendering and the evidence link. These controlled tests do not establish full exchange coverage or production savings.
+
+Confluent resources: both old Datagen connectors were removed first. The old cluster is absent. The replacement Basic cluster `marketpulse` (`lkc-7ykmgx1`) is running. A dedicated connector service account was created. The managed HTTP Source connector is fully configured at the final review screen but has **not been launched**; the $0.30/hour plus usage running-budget choice remains pending.
+
+Not yet verified: cloud connector ingestion, registered source schemas, executing `pipeline/flink.sql`, actual model output, and authenticated Kafka consumption into the dashboard. The SQL file is explicitly marked as unexecuted. Neither a public deployment nor a challenge submission was made.
