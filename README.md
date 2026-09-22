@@ -67,7 +67,7 @@ The comparison shows baseline, unguarded and guarded decisions, known sample cov
 Use **Download evidence** to preserve the baseline, transformed events, inputs, rules, report and SHA-256 digest. Reproduce a saved artifact offline:
 
 ```powershell
-node verify-evidence.mjs evidence/duplicate.json
+node verify-evidence.mjs evidence/example-duplicate.json
 ```
 
 The verifier checks both the digest and an exact recomputation. A digest is not a signed attestation of origin. Server snapshots and artifacts expire after 30 minutes; at most 12 of each are retained in memory. The included `evidence/` examples preserve a completed real-data experiment after restart.
@@ -86,7 +86,7 @@ The verifier checks both the digest and an exact recomputation. A digest is not 
 
 REST polling of recent trades can miss activity between requests. Counts, volume, notional, movement and VWAP describe observed samples, never full exchange activity. Candle history is a separate aggregated source; a partially formed current minute may change. There is no “money saved” or forecasting accuracy claim. Potential business value is earlier operations triage and reduced manual feed checking; measure those outcomes in a real pilot.
 
-The source is publicly accessible market data, not an assertion that the data has an open-source license. Review Coinbase terms before redistribution or commercial deployment. The app runs locally and is not deployed by these instructions.
+The source is publicly accessible market data, not an assertion that the data has an open-source license. Review Coinbase terms before redistribution or commercial deployment. The app supports both local Node mode and the public GitHub Pages build described above.
 
 ## Sources
 

@@ -2,3 +2,7 @@
 *.log
 node_modules/
 dist/
+evidence/duplicate.json
+evidence/drop.json
+evidence/delay.json
+evidence/shock.json

@@ -11,7 +11,7 @@ Market operations teams need to distinguish genuine movement from duplicated, mi
 3. Choose **Duplicate burst**, moderate severity, and **Run stress test**. Compare inflated activity with the deduplicated decision. A calm baseline should produce ALERT versus CLEAR; existing real movement may correctly keep both at ALERT.
 4. Choose **Missing events** and run again. The guarded decision becomes HOLD because known records from this frozen baseline are absent.
 5. Choose **Price shock**. A synthetic 3% shift in the final third tests whether a meaningful movement survives the quality guard. Explain that the injected movement is simulated.
-6. Download the evidence. Run `node verify-evidence.mjs evidence/duplicate.json` to show that the saved example reproduces its result without a network connection.
+6. Download the evidence. Run `node verify-evidence.mjs evidence/example-duplicate.json` to show that the saved example reproduces its result without a network connection.
 
 ## Recorded experiment
 
@@ -24,7 +24,7 @@ Captured **22 September 2026, 10:52:19 UTC**, from Coinbase public REST. Each ex
 | Delay half beyond their replay deadlines | 250 | 250 | CLEAR | HOLD |
 | Inject a 3% price shift into the final third | 500 | 500 | ALERT | ALERT |
 
-All four exported artifacts passed SHA-256 integrity checking and deterministic replay. Files are in `evidence/`; `results.json` summarizes the run. These are controlled demonstration results, not production accuracy or savings measurements. New live samples can produce different decisions.
+All four full exported artifacts passed SHA-256 integrity checking and deterministic replay; `evidence/results.json` summarizes that run. The repository includes four compact `evidence/example-*.json` artifacts made from a clearly labeled 12-record excerpt of the same source sample. These smaller examples also pass exact replay, but their counts differ from the 500-record table above. Full original artifacts remain in the local delivery bundle. These are controlled demonstration results, not production accuracy or savings measurements. New live samples can produce different decisions.
 
 ## What makes the demonstration distinctive
 
