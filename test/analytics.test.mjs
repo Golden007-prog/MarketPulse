@@ -46,6 +46,14 @@ test('Kafka decoding accepts real JSON_SR framing and array batches',()=>{
 });
 
 const sampleSignal={symbol:'BTC-USD',window_end:'2026-09-22 10:00:00.000',observed_trades:'120',observed_notional:32100.5,sample_vwap:85000,forecast_trades:100,lower_bound:75,upper_bound:125,signal:'NORMAL'};
+test('HTTP connector epoch-millisecond timestamps retain the exact UTC event time',()=>{
+  const payload={...row(12,-1),time:now-1000};
+  const wire=Buffer.concat([Buffer.from([0,0,1,134,167]),Buffer.from(JSON.stringify(payload))]);
+  assert.deepEqual(decodeTradeMessage(wire,'BTC-USD')[0],trade(12,-1));
+  for(const time of [1.5,Number.MAX_SAFE_INTEGER,Number.MAX_SAFE_INTEGER+1]) {
+    assert.throws(()=>decodeTradeMessage(Buffer.from(JSON.stringify({...payload,time})),'BTC-USD'));
+  }
+});
 test('Flink signals decode JSON_SR and treat timezone-free SQL timestamp as UTC',()=>{
   const wire=Buffer.concat([Buffer.from([0,0,0,1,2]),Buffer.from(JSON.stringify(sampleSignal))]);
   const signal=decodeSignalMessage(wire)[0];

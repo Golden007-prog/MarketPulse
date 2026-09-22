@@ -1,4 +1,4 @@
--- MarketPulse core, revision 2. DRAFT: NOT EXECUTED / VERIFIED IN CLOUD.
+-- MarketPulse core, revision 3. DRAFT: PIPELINE NOT EXECUTED / VERIFIED IN CLOUD.
 -- Run EACH numbered statement separately, in order; select the Kafka cluster's
 -- database and its environment catalog in the workspace first. Do not paste
 -- the entire file into one cell. See execution-plan.md and validation.sql.
@@ -6,6 +6,9 @@
 -- Confluent reserves the view name with a metadata-only topic.
 -- Expected raw value: ONE Coinbase trade object per Kafka record, JSON_SR.
 -- DO NOT run if DESCRIBE shows an array/wrapper instead of the five fields.
+-- Observed BTC schema on 2026-09-22: time TIMESTAMP_LTZ(3), trade_id INT.
+-- The connector converts ISO timestamps to Connect epoch milliseconds.
+-- Preserve the inferred native TIMESTAMP_LTZ instead of reparsing its display text.
 
 -- 1. Shared parsing view. Raw strings preserve rejected values for inspection.
 CREATE VIEW marketpulse_parsed AS
@@ -16,7 +19,7 @@ SELECT symbol, raw_trade_id, raw_price, raw_size, raw_side, raw_time,
     WHEN price IS NULL OR price <= 0 THEN 'INVALID_PRICE'
     WHEN size IS NULL OR size <= 0 THEN 'INVALID_SIZE'
     WHEN raw_side IS NULL OR raw_side NOT IN ('buy', 'sell') THEN 'INVALID_MAKER_SIDE'
-    WHEN raw_time IS NULL OR raw_time NOT LIKE '%Z' OR event_time IS NULL THEN 'INVALID_UTC_TIME'
+    WHEN raw_time IS NULL OR event_time IS NULL THEN 'INVALID_UTC_TIME'
     ELSE CAST(NULL AS STRING)
   END AS invalid_reason
 FROM (
@@ -24,19 +27,20 @@ FROM (
     TRY_CAST(raw_trade_id AS BIGINT) AS trade_id,
     TRY_CAST(raw_price AS DECIMAL(24, 8)) AS price,
     TRY_CAST(raw_size AS DECIMAL(24, 8)) AS size,
-    TRY_CAST(REPLACE(REPLACE(raw_time, 'T', ' '), 'Z', '') AS TIMESTAMP(3)) AS event_time
+    source_event_time AS event_time
   FROM (
     SELECT 'BTC-USD' AS symbol, CAST(trade_id AS STRING) AS raw_trade_id,
       CAST(price AS STRING) AS raw_price, CAST(size AS STRING) AS raw_size,
-      CAST(side AS STRING) AS raw_side, CAST(`time` AS STRING) AS raw_time
+      CAST(side AS STRING) AS raw_side, CAST(`time` AS STRING) AS raw_time,
+      `time` AS source_event_time
     FROM `marketpulse_trades_BTC-USD`
     UNION ALL
     SELECT 'ETH-USD', CAST(trade_id AS STRING), CAST(price AS STRING),
-      CAST(size AS STRING), CAST(side AS STRING), CAST(`time` AS STRING)
+      CAST(size AS STRING), CAST(side AS STRING), CAST(`time` AS STRING), `time`
     FROM `marketpulse_trades_ETH-USD`
     UNION ALL
     SELECT 'SOL-USD', CAST(trade_id AS STRING), CAST(price AS STRING),
-      CAST(size AS STRING), CAST(side AS STRING), CAST(`time` AS STRING)
+      CAST(size AS STRING), CAST(side AS STRING), CAST(`time` AS STRING), `time`
     FROM `marketpulse_trades_SOL-USD`
   ) AS raw_rows
 ) AS parsed_rows;
@@ -48,7 +52,7 @@ CREATE MATERIALIZED TABLE marketpulse_events (
   price DECIMAL(24, 8),
   size DECIMAL(24, 8),
   maker_side STRING,
-  event_time TIMESTAMP(3),
+  event_time TIMESTAMP_LTZ(3),
   WATERMARK FOR event_time AS event_time - INTERVAL '30' SECOND
 )
 WITH ('value.format' = 'json-registry', 'kafka.retention.time' = '86400000 ms')

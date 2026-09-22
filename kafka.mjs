@@ -11,7 +11,15 @@ export function decodeJsonMessage(value) {
 export function decodeTradeMessage(value, product) {
   const raw=decodeJsonMessage(value);
   const rows=Array.isArray(raw)?raw:[raw];
-  return rows.map(row=>normalizeTrade(row,product));
+  return rows.map(row=>{
+    // HttpSource infers Coinbase's ISO time as a Connect Timestamp. JSON_SR
+    // encodes that logical type as epoch milliseconds, not an ISO string.
+    if(typeof row?.time==='number') {
+      if(!Number.isSafeInteger(row.time) || !Number.isFinite(new Date(row.time).getTime())) throw new Error('Invalid Connect timestamp');
+      return normalizeTrade({...row,time:new Date(row.time).toISOString()},product);
+    }
+    return normalizeTrade(row,product);
+  });
 }
 
 export function normalizeSignal(raw) {

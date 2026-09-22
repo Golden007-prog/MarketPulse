@@ -7,6 +7,7 @@ Status: prepared from official Confluent documentation; **not cloud validated**.
 1. Select the environment catalog and `marketpulse` Kafka cluster database in the Flink workspace. Confirm compatible compute-pool region and capacity in the console.
 2. Confirm the HTTP Source connector is running and all three `marketpulse_trades_*` topics receive real Coinbase records. Each record must be one object with `trade_id`, `price`, `size`, `side`, `time`. A top-level array/envelope requires connector extraction changes or explicit unnesting before this SQL.
 3. Run validation.sql section A individually. Inspect existing registered schemas rather than registering a guessed schema over a live topic. Keep JSON_SR output; the app decoder cannot read Avro.
+   Revision 3 expects `time TIMESTAMP_LTZ(3)`: this was confirmed for BTC in cloud on 2026-09-22. HttpSource registers a Connect Timestamp encoded as epoch milliseconds. The parser preserves the native timestamp rather than requiring an ISO `Z` suffix on its display text. Confirm ETH and SOL use the same type before executing the union.
 4. Inspect any existing target definitions. Do not drop tables to force reruns. Core creates three persistent jobs, three topics and schemas. Optional quarantine adds a fourth job. Streaming inspection SELECTs also consume resources until cancelled.
 
 ## Core: four statements, three running jobs
