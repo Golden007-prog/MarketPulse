@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CoinbasePublicTrade",
+  "description": "Documented input contract; the HTTP connector's inferred registered schema must be checked after launch.",
+  "type": "object",
+  "properties": {
+    "trade_id": {"type": "integer"},
+    "price": {"type": "string"},
+    "size": {"type": "string"},
+    "side": {"type": "string", "enum": ["buy", "sell"], "description": "Maker side"},
+    "time": {"type": "string", "format": "date-time"}
+  },
+  "required": ["trade_id", "price", "size", "side", "time"]
+}

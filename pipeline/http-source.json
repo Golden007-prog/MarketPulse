@@ -1,0 +1,19 @@
+{
+  "name": "marketpulse-public-trades",
+  "connector.class": "HttpSource",
+  "kafka.auth.mode": "SERVICE_ACCOUNT",
+  "kafka.service.account.id": "sa-d9mqdyy",
+  "url": "https://api.exchange.coinbase.com/products/${entityName}/trades?limit=1000",
+  "auth.type": "none",
+  "topic.name.pattern": "marketpulse_trades_${entityName}",
+  "entity.names": "BTC-USD,ETH-USD,SOL-USD",
+  "http.request.method": "GET",
+  "http.request.headers": "Accept:application/json|User-Agent:MarketPulse-Demo/1.0",
+  "http.initial.offset": "0",
+  "http.offset.mode": "SIMPLE_INCREMENTING",
+  "request.interval.ms": "10000",
+  "output.data.format": "JSON_SR",
+  "tasks.max": "1",
+  "max.retries": "10",
+  "retry.backoff.ms": "3000"
+}
